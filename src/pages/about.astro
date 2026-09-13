@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+import { url } from '../lib/utils';
+---
+
+<BaseLayout title="关于" description="关于本站与作者">
+  <header class="page-head">
+    <h1>关于</h1>
+    <p>{SITE.bio}</p>
+  </header>
+
+  <div class="prose">
+    <h2>我是谁</h2>
+    <p>
+      这里是 <strong>{SITE.author}</strong> 的个人站点。我把它当作一块自留地：把工作中解决问题的过程写清楚，
+      把学过的知识重新表达一遍，也把生活里那些还没想明白的事记下来，过一段时间回来修订。
+    </p>
+
+    <h2>这个站点包含什么</h2>
+    <ul>
+      <li><a href={url('/work/')}>工作经验</a>：项目复盘、技术选型、踩坑记录、方法论沉淀。</li>
+      <li><a href={url('/products/')}>产品</a>：我参与过的产品的公开介绍（不含公司未公开信息）。</li>
+      <li><a href={url('/learn/')}>学习笔记</a>：课程、书籍、论文的整理与再表达。</li>
+      <li><a href={url('/blog/')}>随笔</a>：心得、感悟，以及对生活理解的迭代。</li>
+    </ul>
+
+    <h2>写作原则</h2>
+    <ol>
+      <li>写自己能验证的东西，不写听起来正确的空话。</li>
+      <li>宁可写短，不写凑数。一篇文章只解决一个问题。</li>
+      <li>不确定的地方明确标注，允许自己以后推翻自己。</li>
+    </ol>
+
+    <h2>怎么联系我</h2>
+    <p>
+      把这里换成你的邮箱或社交账号，例如 <code>you@example.com</code>。也可以订阅
+      <a href={url('/rss.xml')}>RSS</a> 获取更新。
+    </p>
+
+    <h2>技术说明</h2>
+    <p>
+      本站使用 <a href="https://astro.build" rel="noopener">Astro</a> 构建，纯静态输出，
+      托管在 GitHub Pages 上，零服务器成本。内容以 Markdown 编写，与本地知识库共用同一批文件。
+    </p>
+  </div>
+</BaseLayout>

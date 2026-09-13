@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/utils';
+---
+
+<BaseLayout title="页面不存在" description="404">
+  <header class="page-head">
+    <h1>404</h1>
+    <p>这个页面不存在，可能是链接写错了，或者内容已经被我改掉了。</p>
+  </header>
+  <p>
+    <a href={url('/')}>回到首页</a> ·
+    <a href={url('/blog/')}>看全部文章</a>
+  </p>
+</BaseLayout>

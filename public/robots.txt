@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# 部署后把下面这行改成你的真实域名
+Sitemap: https://YOURNAME.github.io/my-blog/sitemap-index.xml

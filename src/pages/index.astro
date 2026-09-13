@@ -1,0 +1,150 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE } from '../consts';
+import { url, postUrl, byDateDesc } from '../lib/utils';
+
+const isProd = import.meta.env.PROD;
+const visible = <T extends { data: { draft: boolean } }>(list: T[]) =>
+  isProd ? list.filter((e) => !e.data.draft) : list;
+
+const [blog, work, learn, products] = await Promise.all([
+  getCollection('blog'),
+  getCollection('work'),
+  getCollection('learn'),
+  getCollection('products'),
+]);
+
+const latestPosts = visible(blog).sort(byDateDesc).slice(0, 5);
+const latestWork = visible(work).sort(byDateDesc).slice(0, 3);
+const publishedProducts = visible(products).sort(byDateDesc);
+
+const sections = [
+  {
+    href: url('/work/'),
+    title: '工作经验',
+    desc: '做过的事、踩过的坑、沉淀下来的方法。',
+    count: work.length,
+  },
+  {
+    href: url('/products/'),
+    title: '产品展示',
+    desc: '公司产品与项目介绍，只放可公开的信息。',
+    count: products.length,
+  },
+  {
+    href: url('/learn/'),
+    title: '学习笔记',
+    desc: '读过的书、上过的课、整理过的知识。',
+    count: learn.length,
+  },
+  {
+    href: url('/blog/'),
+    title: '随笔感悟',
+    desc: '对生活的理解，随时间不断修订。',
+    count: blog.length,
+  },
+];
+---
+
+<BaseLayout>
+  <section class="hero">
+    <h1>{SITE.title}</h1>
+    <p>{SITE.bio}</p>
+    <div class="meta">
+      <a class="tag" href={url('/blog/')}>随笔 {blog.length} 篇</a>
+      <a class="tag" href={url('/work/')}>经验 {work.length} 篇</a>
+      <a class="tag" href={url('/learn/')}>笔记 {learn.length} 篇</a>
+      <a class="tag" href={url('/products/')}>产品 {products.length} 个</a>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>最近写的</h2>
+      <a href={url('/blog/')}>全部随笔 →</a>
+    </div>
+    {
+      latestPosts.length ? (
+        <ul class="post-list">
+          {latestPosts.map((post) => (
+            <PostCard
+              href={postUrl('blog', post.id)}
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p class="empty">还没有文章。在 <code>content/blog/</code> 里新建一个 .md 文件就会出现在这里。</p>
+      )
+    }
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>站点导航</h2>
+    </div>
+    <div class="grid">
+      {
+        sections.map((s) => (
+          <a class="tile" href={s.href}>
+            <p class="tile-title">
+              {s.title} <span class="arrow">→</span>
+            </p>
+            <p>{s.desc}</p>
+            <p class="meta">{s.count} 篇内容</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    latestWork.length > 0 && (
+      <section>
+        <div class="section-title">
+          <h2>工作经验</h2>
+          <a href={url('/work/')}>全部经验 →</a>
+        </div>
+        <ul class="post-list">
+          {latestWork.map((post) => (
+            <PostCard
+              href={postUrl('work', post.id)}
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+              badge={post.data.company || undefined}
+            />
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    publishedProducts.length > 0 && (
+      <section>
+        <div class="section-title">
+          <h2>产品</h2>
+          <a href={url('/products/')}>全部产品 →</a>
+        </div>
+        <div class="grid">
+          {publishedProducts.slice(0, 4).map((p) => (
+            <a class="tile" href={postUrl('products', p.id)}>
+              <p class="tile-title">{p.data.productName || p.data.title}</p>
+              <p>{p.data.description}</p>
+              <p class="meta">
+                <span class="tag">{p.data.status}</span>
+              </p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>

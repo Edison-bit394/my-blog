@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { postUrl, byDateDesc, countTags } from '../lib/utils';
+
+type Section = 'blog' | 'work' | 'learn' | 'products';
+
+export interface Props {
+  section: Section;
+  title: string;
+  description?: string;
+  /** 每张卡片右下角的补充信息，例如产品状态 */
+  badgeField?: 'company' | 'status' | 'progress';
+}
+
+const { section, title, description, badgeField } = Astro.props;
+const isProd = import.meta.env.PROD;
+
+const entries = (await getCollection(section as 'blog') as any[])
+  .filter((e) => !isProd || !e.data.draft)
+  .sort(byDateDesc);
+
+const tags = countTags(entries as any);
+const tagFilter = Astro.url.searchParams.get('tag');
+const shown = tagFilter ? entries.filter((e) => e.data.tags?.includes(tagFilter)) : entries;
+---
+
+<BaseLayout title={title} description={description}>
+  <header class="page-head">
+    <h1>{title}</h1>
+    {description && <p>{description}</p>}
+  </header>
+
+  {
+    tags.length > 0 && (
+      <div class="meta" style="margin-bottom:1.5rem">
+        <a class="tag" href={`${Astro.url.pathname}`} aria-current={!tagFilter ? 'page' : undefined}>
+          全部 {entries.length}
+        </a>
+        {tags.map(([tag, count]) => (
+          <a class="tag" href={`${Astro.url.pathname}?tag=${encodeURIComponent(tag)}`}>
+            #{tag} {count}
+          </a>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    shown.length ? (
+      <ul class="post-list">
+        {shown.map((entry) => (
+          <PostCard
+            href={postUrl(section, entry.id)}
+            title={entry.data.title}
+            description={entry.data.description}
+            pubDate={entry.data.pubDate}
+            tags={entry.data.tags}
+            badge={badgeField ? entry.data[badgeField] || undefined : undefined}
+          />
+        ))}
+      </ul>
+    ) : (
+      <p class="empty">
+        {tagFilter ? `没有标签为 #${tagFilter} 的内容。` : '这个栏目还没有内容。'}
+      </p>
+    )
+  }
+</BaseLayout>

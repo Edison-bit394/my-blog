@@ -1,0 +1,11 @@
+{
+  "vault": "",
+  "sections": ["blog", "work", "learn", "products"],
+  "exclude": ["README.md"],
+  "ignoreOrphans": [
+    "blog/我为什么要有一个自己的网站.md",
+    "work/经验复盘模板.md",
+    "learn/学习笔记模板.md",
+    "products/产品示例.md"
+  ]
+}

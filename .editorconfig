@@ -1,0 +1,19 @@
+# 统一换行与编码：所有源文件必须是「UTF-8 无 BOM」。
+# 带 BOM 会让 Vite 误判配置文件，报出 "require is not defined"。
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.{js,mjs,cjs,ts,astro,css}]
+indent_size = 2

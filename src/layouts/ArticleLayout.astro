@@ -1,0 +1,108 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import { url, postUrl, byDateDesc, formatDate } from '../lib/utils';
+
+type Section = 'blog' | 'work' | 'learn' | 'products';
+
+export interface Props {
+  section: Section;
+  entry: CollectionEntry<Section>;
+}
+
+const { section, entry } = Astro.props;
+const { Content } = await render(entry);
+
+const sectionLabel: Record<Section, string> = {
+  blog: '随笔',
+  work: '工作经验',
+  learn: '学习笔记',
+  products: '产品',
+};
+
+// 上一篇 / 下一篇，仅在同一栏目内
+const isProd = import.meta.env.PROD;
+const siblings = (await getCollection(section as 'blog'))
+  .filter((e: any) => !isProd || !e.data.draft)
+  .sort(byDateDesc as any);
+
+const index = siblings.findIndex((e: any) => e.id === (entry as any).id);
+const prev: any = index > 0 ? siblings[index - 1] : undefined;
+const next: any = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
+
+// 各栏目特有的元信息
+const data = entry.data as any;
+const extras: { label: string; value: string }[] = [];
+if (section === 'work') {
+  if (data.company) extras.push({ label: '公司', value: data.company });
+  if (data.role) extras.push({ label: '角色', value: data.role });
+  if (data.period) extras.push({ label: '时间', value: data.period });
+}
+if (section === 'learn') {
+  if (data.source) extras.push({ label: '来源', value: data.source });
+  if (data.progress) extras.push({ label: '状态', value: data.progress });
+  if (data.rating) extras.push({ label: '评分', value: '★'.repeat(data.rating) });
+}
+if (section === 'products') {
+  if (data.productName) extras.push({ label: '产品名', value: data.productName });
+  if (data.status) extras.push({ label: '状态', value: data.status });
+  if (data.link) extras.push({ label: '链接', value: data.link });
+}
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  pubDate={data.pubDate}
+  tags={data.tags}
+>
+  <article class="prose">
+    <header class="article-head">
+      <div class="meta">
+        <a href={url(`/${section}/`)}>{sectionLabel[section]}</a>
+      </div>
+      <h1>{data.title}</h1>
+      {data.description && <p class="meta">{data.description}</p>}
+      <div class="meta">
+        <time datetime={data.pubDate.toISOString()}>{formatDate(data.pubDate)}</time>
+        {data.updatedDate && <span>修订于 {formatDate(data.updatedDate)}</span>}
+        {data.tags.map((tag: string) => <span class="tag">#{tag}</span>)}
+      </div>
+      {
+        extras.length > 0 && (
+          <div class="meta" style="margin-top:0.6rem">
+            {extras.map((e) => (
+              <span>
+                {e.label}：<strong>{e.value}</strong>
+              </span>
+            ))}
+          </div>
+        )
+      }
+    </header>
+
+    {data.highlights?.length > 0 && (
+      <div class="callout">
+        <strong>产品亮点</strong>
+        <ul>
+          {data.highlights.map((h: string) => (
+            <li>{h}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    <Content />
+
+    <footer class="article-foot">
+      <ul class="post-list">
+        {prev && <li>← 上一篇：<a href={postUrl(section, prev.id)}>{prev.data.title}</a></li>}
+        {next && <li>→ 下一篇：<a href={postUrl(section, next.id)}>{next.data.title}</a></li>}
+        <li>
+          <a href={url(`/${section}/`)}>返回{sectionLabel[section]}列表</a>
+        </li>
+      </ul>
+    </footer>
+  </article>
+</BaseLayout>

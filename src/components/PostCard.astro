@@ -1,0 +1,25 @@
+---
+import { formatDate } from '../lib/utils';
+
+export interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  pubDate: Date;
+  tags?: string[];
+  /** 卡片右上角补充信息，如产品状态、学习进度 */
+  badge?: string;
+}
+
+const { href, title, description, pubDate, tags = [], badge } = Astro.props;
+---
+
+<li class="post-card">
+  <h3><a href={href}>{title}</a></h3>
+  {description && <p>{description}</p>}
+  <div class="meta">
+    <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    {badge && <span class="tag">{badge}</span>}
+    {tags.slice(0, 4).map((tag) => <span class="tag">#{tag}</span>)}
+  </div>
+</li>
