@@ -59,6 +59,21 @@ const subdomain = getOption('sub', 'www');
 const DRY_RUN = hasFlag('dry-run');
 const SKIP_CONFIRM = hasFlag('yes');
 
+/**
+ * 裸域名（apex）用几条 A 记录。
+ *
+ * GitHub Pages 官方推荐 4 条（4 个 IP 互为容灾），但**很多免费 DNS 套餐限制 A 记录条数**，
+ * 例如 DNSPod 免费版只给 2 条。实测 1 条也能正常工作，只是少了容灾。
+ *
+ *   --apex single   只加 1 条（默认，兼容免费版限制）
+ *   --apex multi    加满 4 条（DNS 服务商允许时推荐）
+ */
+const apexMode = getOption('apex', 'single');
+if (!['single', 'multi'].includes(apexMode)) {
+  console.error('--apex 只能是 single 或 multi');
+  process.exit(1);
+}
+
 if (!domain) {
   console.error('缺少 --domain 参数。例如：--domain edison-bit394.online');
   process.exit(1);
@@ -130,7 +145,7 @@ async function callApi(path, params = {}) {
 /* ------------------------------------------------------------------ */
 
 const plannedRecords = [
-  ...GITHUB_PAGES_IPV4.map((ip) => ({
+  ...(apexMode === 'multi' ? GITHUB_PAGES_IPV4 : [GITHUB_PAGES_IPV4[0]]).map((ip) => ({
     name: '@',
     type: 'A',
     value: ip,
@@ -162,6 +177,11 @@ for (const r of plannedRecords) {
 }
 console.log('');
 console.log(`域名：${domain}`);
+console.log(`裸域名模式：${apexMode === 'multi' ? '4 条 A 记录（推荐，含容灾）' : '1 条 A 记录（兼容 DNSPod 免费版等限制）'}`);
+if (apexMode === 'single') {
+  console.log('  说明：GitHub Pages 官方推荐 4 条 A 记录互为容灾，但 1 条也能正常工作。');
+  console.log('        如果你的 DNS 服务商不限条数，用 --apex multi 可以加满 4 条。');
+}
 if (DRY_RUN) console.log('模式：dry-run（只查看，不调用创建接口）');
 console.log('');
 
