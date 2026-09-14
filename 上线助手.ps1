@@ -34,7 +34,7 @@ param(
     [string]$RepoName = 'my-blog',
 
     # GitHub 用户名（不含空格，可用连字符）
-    [string]$GitHubUser = '',
+    [string]$GitHubUser = 'Edison-bit394',
 
     # 只检查不执行任何写操作
     [switch]$CheckOnly
