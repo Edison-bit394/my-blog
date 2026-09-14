@@ -13,7 +13,9 @@
     "publish": "node scripts/publish-from-vault.mjs",
     "publish:check": "node scripts/publish-from-vault.mjs --check",
     "preflight": "node scripts/preflight.mjs",
-    "prebuild": "node scripts/preflight.mjs --warn"
+    "prebuild": "node scripts/preflight.mjs --warn",
+    "dns:setup": "node scripts/setup-dns.mjs",
+    "dns:check": "node scripts/check-dns.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",
