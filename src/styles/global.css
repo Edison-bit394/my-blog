@@ -274,6 +274,22 @@ main {
   color: var(--text-soft);
 }
 
+/* ===== 首页照片 ===== */
+.hero-photo {
+  margin: 2rem 0 0;
+}
+
+.hero-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 10px 28px rgb(0 0 0 / 7%);
+}
+
 /* ===== 卡片网格（产品、导航） ===== */
 .grid {
   display: grid;
