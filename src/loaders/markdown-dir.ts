@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve, relative, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { load as parseYaml } from 'js-yaml';
 import type { Loader } from 'astro/loaders';
 
@@ -14,6 +15,11 @@ import type { Loader } from 'astro/loaders';
  *
  * frontmatter 由 js-yaml 解析，支持数组、日期、引号、多行等完整 YAML 语法。
  * 条目 id 就是文件名（不含扩展名），因此 URL 形如 /blog/文件名/。
+ *
+ * ⚠ 关键点：必须同时存 body 和 rendered。
+ *   `<Content />`（render(entry)）只读 entry.rendered.html，见 astro/dist/content/runtime.js 的
+ *   renderEntry 实现。只塞 body 而不调用 renderMarkdown()，页面标题和日期都在、正文却整段空白，
+ *   而且不报任何错——官方 glob() loader 正是因此才要自己 render。
  *
  * ⚠ 关键点：store.set() 的 filePath 必须是**相对于站点根目录**的路径。
  *   绝对路径在 Windows 上能侥幸通过（Astro 的校验里有个盘符分支），
@@ -31,7 +37,7 @@ export function markdownDir(dir: string): Loader {
 
   return {
     name: 'markdown-dir',
-    load: async ({ store, logger, parseData, generateDigest, watcher }) => {
+    load: async ({ store, logger, parseData, generateDigest, watcher, renderMarkdown }) => {
       watcher?.add(absDir);
 
       let files: string[];
@@ -58,14 +64,22 @@ export function markdownDir(dir: string): Loader {
 
         const id = name.replace(/\.(md|mdx)$/i, '');
         const frontmatter = (parseYaml(match[1]) ?? {}) as Record<string, unknown>;
+        const body = match[2];
 
         // parseData 做数据类型校验，同时需要能定位图片等资源，所以给绝对路径
         const data = await parseData({ id, data: frontmatter, filePath: absolutePath });
 
+        // 把 Markdown 渲染成 HTML。fileURL 用于解析正文里的相对图片路径。
+        // 少了这一步，文章页就只有标题和日期，正文是空白。
+        const rendered = await renderMarkdown(body, { fileURL: pathToFileURL(absolutePath) });
+
         store.set({
           id,
           data,
-          body: match[2],
+          body,
+          rendered,
+          // 正文里引用的图片要登记，Astro 才会一并处理和输出
+          assetImports: rendered.metadata?.imagePaths,
           digest: generateDigest(raw),
           // 这里必须是相对路径，否则 Linux 构建失败
           filePath: relativePath,

@@ -4,8 +4,12 @@ import type { CollectionEntry } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
+  const isProd = import.meta.env.PROD;
   const entries = await getCollection('learn');
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  // 草稿只在本地可见：生产构建不生成路由，否则 draft:true 的文章仍能被直接访问
+  return entries
+    .filter((entry) => !isProd || !entry.data.draft)
+    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
 interface Props {
