@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { join, resolve, relative, sep } from 'node:path';
 import { load as parseYaml } from 'js-yaml';
 import type { Loader } from 'astro/loaders';
 
@@ -14,9 +14,20 @@ import type { Loader } from 'astro/loaders';
  *
  * frontmatter 由 js-yaml 解析，支持数组、日期、引号、多行等完整 YAML 语法。
  * 条目 id 就是文件名（不含扩展名），因此 URL 形如 /blog/文件名/。
+ *
+ * ⚠ 关键点：store.set() 的 filePath 必须是**相对于站点根目录**的路径。
+ *   绝对路径在 Windows 上能侥幸通过（Astro 的校验里有个盘符分支），
+ *   但在 Linux CI 上会直接报错：
+ *     File path must be relative to the site root. Got: /home/runner/...
+ *   这个坑只在部署时才暴露，本地永远测不出来。所以这里统一用 relative() 转一次。
  */
 export function markdownDir(dir: string): Loader {
-  const absDir = resolve(process.cwd(), dir);
+  const projectRoot = process.cwd();
+  const absDir = resolve(projectRoot, dir);
+
+  /** 把绝对路径转成 Astro 要求的「相对站点根目录」形式，并统一成正斜杠 */
+  const toSiteRelative = (absolutePath: string) =>
+    relative(projectRoot, absolutePath).split(sep).join('/');
 
   return {
     name: 'markdown-dir',
@@ -34,8 +45,9 @@ export function markdownDir(dir: string): Loader {
       for (const name of files) {
         if (!/\.(md|mdx)$/i.test(name)) continue;
 
-        const filePath = join(absDir, name);
-        const raw = await readFile(filePath, 'utf8');
+        const absolutePath = join(absDir, name);
+        const relativePath = toSiteRelative(absolutePath);
+        const raw = await readFile(absolutePath, 'utf8');
 
         // frontmatter 必须以文件开头，格式为 --- ... ---
         const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(raw);
@@ -46,14 +58,17 @@ export function markdownDir(dir: string): Loader {
 
         const id = name.replace(/\.(md|mdx)$/i, '');
         const frontmatter = (parseYaml(match[1]) ?? {}) as Record<string, unknown>;
-        const data = await parseData({ id, data: frontmatter, filePath });
+
+        // parseData 做数据类型校验，同时需要能定位图片等资源，所以给绝对路径
+        const data = await parseData({ id, data: frontmatter, filePath: absolutePath });
 
         store.set({
           id,
           data,
           body: match[2],
           digest: generateDigest(raw),
-          filePath,
+          // 这里必须是相对路径，否则 Linux 构建失败
+          filePath: relativePath,
         });
       }
     },

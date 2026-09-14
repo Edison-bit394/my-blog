@@ -14,6 +14,7 @@
     "publish:check": "node scripts/publish-from-vault.mjs --check",
     "preflight": "node scripts/preflight.mjs",
     "prebuild": "node scripts/preflight.mjs --warn",
+    "verify:loader": "node scripts/verify-loader-paths.mjs",
     "dns:setup": "node scripts/setup-dns.mjs",
     "dns:check": "node scripts/check-dns.mjs"
   },
