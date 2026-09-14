@@ -231,6 +231,26 @@ Astro 7 + Vite 8 的已知坑：官方 `astro/loaders` 的 `glob()` 依赖 `pico
 **本项目已经绕开了**：内容集合用的是自带的 `src/loaders/markdown-dir.ts`。
 **不要把 `content.config.ts` 里的 `markdownDir()` 改回官方 `glob()`。**
 
+### CI 报 `File path must be relative to the site root`
+
+```
+File path must be relative to the site root.
+Got: /home/runner/work/my-blog/my-blog/content/work/xxx.md
+```
+
+这是**只在 Linux 上暴露**的坑：Astro 要求 `store.set()` 的 `filePath` 是相对站点根目录的路径，
+而传绝对路径**在 Windows 上能侥幸通过**（Astro 的校验里有个盘符分支），
+所以本地 `npm run build` 永远测不出来，一推到 CI 就挂。
+
+本项目已修复（`src/loaders/markdown-dir.ts` 里用 `relative()` 转换），并带回归测试：
+
+```powershell
+npm.cmd run verify:loader
+```
+
+这个测试**已验证能捕获该 bug**（把代码改回绝对路径后退出码为 1）。
+改动 loader 后务必跑一次。
+
 ### 源文件删了，页面还在生成（幽灵页面）
 
 九成是 `src/` 下留了 `content.config.ts.bak` 之类的**备份文件**。
