@@ -20,7 +20,8 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
+// Astro.site 由 astro.config.mjs 的 site 配置提供（自动判断，无需手填）
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 
 const nav = [
   { href: url('/'), label: '首页' },
@@ -94,6 +95,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
           <a href={url('/rss.xml')}>RSS</a>
           <a href={url('/blog/')}>全部文章</a>
           <a href={url('/about/')}>关于本站</a>
+          {SITE.links.github && <a href={SITE.links.github} rel="me noopener">GitHub</a>}
         </span>
       </div>
     </footer>

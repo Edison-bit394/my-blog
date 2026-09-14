@@ -34,6 +34,14 @@ jobs:
 
       - name: 构建站点
         run: npm run build
+        env:
+          # 绑定自定义域名时，在仓库里设置两个变量（不是密钥）：
+          #   Settings → Secrets and variables → Actions → Variables
+          #     SITE_URL  = https://edison-bit394.online/
+          #     SITE_BASE = /
+          # 留空也能用：astro.config.mjs 会自动按 GitHub Pages 地址生成。
+          SITE_URL: ${{ vars.SITE_URL }}
+          SITE_BASE: ${{ vars.SITE_BASE }}
 
       - name: 上传构建产物
         uses: actions/upload-pages-artifact@v4

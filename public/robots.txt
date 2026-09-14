@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# 部署后把下面这行改成你的真实域名
-Sitemap: https://YOURNAME.github.io/my-blog/sitemap-index.xml
+# Sitemap 地址由构建时自动写入（见 astro.config.mjs 的 site 配置）。
+# 这里不需要手工维护，绑定自定义域名后也无需改动。

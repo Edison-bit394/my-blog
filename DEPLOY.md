@@ -1,219 +1,270 @@
 # 上线手册（Git + GitHub Pages，全程免费）
 
-跟着做一遍，大约 20 分钟，之后每篇文章只需 `git push`。
+**重要变化：网址不需要你填了。** 用户名、仓库名由部署时自动识别，
+所以不存在"填错 GitHub 用户名导致链接 404"的问题。你只需要做两件事：装 Git、建仓库。
+
+全程约 30 分钟。
 
 ---
 
-## 第 0 步：改掉占位信息（先做这个）
+## 最快路径：运行上线助手
 
-打开 `src/consts.ts`，把这几项改成你自己的：
-
-```ts
-export const SITE = {
-  title: '我的经验与思考',      // 改成你的站点名
-  tagline: '工作经验 · 学习笔记 · 产品实践 · 生活随想',
-  author: '你的名字',            // 改成你的名字
-  url: 'https://YOURNAME.github.io/',   // 改成你的 GitHub 用户名
-  base: '/my-blog/',             // 必须与 GitHub 仓库名完全一致
-  bio: '记录解决问题的方法，也记录生活给出的答案。',
-} as const;
-```
-
-三处必须保持一致，否则上线后样式和链接会 404：
-
-| 位置 | 值 |
-| --- | --- |
-| `src/consts.ts` 的 `url` | `https://<你的用户名>.github.io/` |
-| `src/consts.ts` 的 `base` | `/<仓库名>/` |
-| GitHub 上的仓库名 | 与上面 `base` 去掉斜杠后一致 |
-
-> 仓库名建议用 `blog`、`notes` 之类。也可以用 `<你的用户名>.github.io` 当仓库名，
-> 那样 `url` 填 `https://<你的用户名>.github.io/`、`base` 填 `'/'`。
-
-顺手把 `public/robots.txt` 里的 `Sitemap:` 那行也改成你的真实域名。
-
----
-
-## 第 1 步：安装 Git
-
-本机目前没有 Git，先装：
-
-1. 打开 <https://git-scm.com/download/win>，下载 64 位安装包；
-2. 一路默认下一步即可（默认编辑器选 Visual Studio Code 或 Notepad 都行）；
-3. 装完**新开**一个 PowerShell 窗口，执行 `git --version` 能看到版本号就成功了。
-
-装好后设置身份（只需一次）：
+在 `site` 目录下执行：
 
 ```powershell
-git config --global user.name "你的名字"
+pwsh -ExecutionPolicy Bypass -File .\上线助手.ps1
+```
+
+它会：检查 Git 是否真的装好 → 配置你的提交身份 → 检查必需文件是否齐全
+→ 初始化本地仓库并提交 → 打印出你接下来要复制的命令。
+
+如果提示"禁止运行脚本"，就用上面这条带 `-ExecutionPolicy Bypass` 的命令。
+
+> 只想检查不执行任何操作：加 `-CheckOnly`
+
+---
+
+## 第 1 步：装 Git（必须由你来装）
+
+本机**目前还没有 Git**（我检查过 PATH 和三个常见安装位置都没有）。
+
+1. 打开 <https://git-scm.com/download/win>，下载 64 位安装包；
+2. 一路默认下一步即可；
+3. **装完后必须关掉所有终端窗口，重新打开**——这是最常见的"装了但用不了"的原因；
+4. 新窗口里执行 `git --version`，看到版本号才算成功。
+
+设置提交身份（只需一次，建议邮箱用 GitHub 注册邮箱）：
+
+```powershell
+git config --global user.name "Edison Hu"
 git config --global user.email "你的邮箱@example.com"
 ```
 
 ---
 
-## 第 2 步：本机跑起来看看
-
-在这个 `site` 目录下执行：
+## 第 2 步：本地先看效果
 
 ```powershell
-npm install          # 只做一次，安装依赖
-npm run dev          # 启动本地预览
+npm.cmd install      # 只做一次
+npm.cmd run dev
 ```
 
-浏览器打开 <http://localhost:4321/my-blog/> 就能看到站点。
+浏览器打开 **<http://127.0.0.1:4321/>**
+
+> 注意：开发模式的网址**不带** `/my-blog/`，直接访问根路径。
+> 如果浏览器说"拒绝连接"，一定是服务没在运行——这个网站是静态的，
+> 只有 `npm run dev`（或 `npm run preview`）运行期间才能访问，关掉窗口就没了。
+
 改 Markdown 或代码会立即生效，`Ctrl+C` 停止。
 
-> **如果 PowerShell 报「禁止运行脚本」**：把 `npm` 换成 `npm.cmd`，
-> 例如 `npm.cmd run dev`，`npx` 换成 `npx.cmd`。这是 Windows 执行策略导致的，不影响使用。
-
-写一篇新文章：
+写新文章：
 
 ```powershell
 npm.cmd run new -- blog "今天想明白的一件事"
 ```
 
-会在 `content/blog/` 下生成带 frontmatter 的文件。
-`draft: true` 时只在本地可见，改成 `false` 才会发布。
+---
+
+## 第 3 步：在 GitHub 创建仓库
+
+1. 注册/登录 <https://github.com>（如果还没有账号）；
+2. 打开 <https://github.com/new>；
+3. Repository name 填 **`my-blog`**；
+4. 选 **Public**（免费版 Pages 需要公开仓库）；
+5. **不要**勾选 "Add a README file"（本地已经有内容了）；
+6. 点 **Create repository**。
+
+> 仓库名可以换成别的，但一旦确定就别改了——网址里会包含它。
+> 想换还记得同时改 `package.json` 里的 `name`。
 
 ---
 
-## 第 3 步：创建 GitHub 仓库并推上去
+## 第 4 步：推上去
 
-1. 注册/登录 <https://github.com>；
-2. 右上角 **+ → New repository**；
-3. Repository name 填 `my-blog`（要和 `src/consts.ts` 的 `base` 一致）；
-4. 选 **Public**（GitHub Pages 免费版需要公开仓库）；
-5. **不要**勾选 "Add a README file"（我们本地已有内容）；
-6. 点 **Create repository**。
-
-然后在本机 `site` 目录执行（把 `YOURNAME` 换成你的用户名）：
+在 `site` 目录执行（把 `Edison-bit394` 换成你的用户名，注意是**连字符**）：
 
 ```powershell
-git init
-git add .
-git commit -m "初始化个人网站"
-git branch -M main
-git remote add origin https://github.com/YOURNAME/my-blog.git
+git remote add origin https://github.com/Edison-bit394/my-blog.git
 git push -u origin main
 ```
 
-第一次 push 会弹出浏览器要求授权，按提示登录即可。
+第一次 push 会弹出浏览器要求登录 GitHub，按提示授权。
 
-> **重要**：`npm install` 之后一定要把 `package-lock.json` 一起提交
-> （`git add .` 会自动包含它）。GitHub Actions 用 `npm ci` 安装依赖，缺这个文件会构建失败。
+> `package-lock.json` 必须一起提交（上线助手会检查这一点）。
+> GitHub Actions 用 `npm ci` 安装依赖，缺这个文件构建必然失败。
 
 ---
 
-## 第 4 步：打开 GitHub Pages
+## 第 5 步：打开 GitHub Pages
 
-1. 进入仓库页面 → **Settings** → 左侧 **Pages**；
-2. 在 **Build and deployment → Source** 选择 **GitHub Actions**；
-3. 回到仓库 **Actions** 标签，能看到 "Deploy to GitHub Pages" 正在运行；
-4. 等 1～2 分钟变成绿色勾，访问：
+1. 打开 `https://github.com/Edison-bit394/my-blog/settings/pages`；
+2. **Build and deployment → Source** 选 **GitHub Actions**
+   （不要选 "Deploy from a branch"）；
+3. 回到仓库 **Actions** 标签，能看到 "Deploy to GitHub Pages" 在运行；
+4. 等 1～2 分钟变绿，访问：
 
    ```
-   https://YOURNAME.github.io/my-blog/
+   https://edison-bit394.github.io/my-blog/
    ```
 
-之后每次 `git push`，网站自动更新，不需要再做任何操作。
+之后每次 `git push`，网站自动更新。
+
+---
+
+## 绑定自己的域名（可选）
+
+### 先买域名
+
+域名必须你本人购买（涉及实名与付款，我无法代办）。国内厂商约 **¥30～60/年**：
+
+| 厂商 | 地址 | 说明 |
+| --- | --- | --- |
+| 阿里云万网 | wanwang.aliyun.com | 国内主流，需实名认证 |
+| 腾讯云 | cloud.tencent.com/product/domain | 同上 |
+| Namecheap | namecheap.com | 国外，无需备案，支持支付宝 |
+
+**选域名的建议**：用你的名字拼音，如 `edisonhu.com`。`.com` 最好记；
+`.cn` 更便宜但需实名；`.dev` / `.me` 适合个人品牌。
+不要买奇怪的后缀——别人记不住就等于没有。
+
+> **关于备案**：用 GitHub Pages + 国外域名商**不需要备案**。
+> 国内厂商买的域名如果只是解析到境外服务器，一般也不用备案，
+> 但以厂商的实际要求为准。
+
+### 买完之后的配置（两步）
+
+**第一步：设置 DNS 解析**（在域名商的控制台里）
+
+添加一条 CNAME 记录：
+
+| 类型 | 主机记录 | 记录值 |
+| --- | --- | --- |
+| CNAME | `www` | `edison-bit394.github.io` |
+
+想用裸域名（`edisonhu.com` 不带 www）就再加四条 A 记录，指向 GitHub Pages 的 IP：
+
+```
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153
+```
+
+**第二步：告诉 GitHub 和网站**
+
+1. 到 `https://github.com/Edison-bit394/my-blog/settings/pages`；
+2. **Custom domain** 填你的域名，点 Save；
+3. 等 DNS 生效（几分钟到几小时），勾选 **Enforce HTTPS**（证书自动签发）；
+4. 打开 `site/astro.config.mjs`，把 `detectSite()` 换成你想要的地址——
+   **最省事的做法**是设置环境变量，见下面。
+
+### 绑域名后怎么让链接正确
+
+`astro.config.mjs` 会自动判断网址，绑了域名后有两种改法：
+
+**做法 A（推荐）：设置环境变量**，代码不用改
+
+在 GitHub 仓库 → **Settings → Secrets and variables → Actions → Variables** 里新增：
+
+| 名称 | 值 |
+| --- | --- |
+| `SITE_URL` | `https://你的域名/` |
+| `SITE_BASE` | `/` |
+
+然后改 `.github/workflows/deploy.yml`，在构建那一步加上环境变量：
+
+```yaml
+      - name: 构建站点
+        run: npm run build
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          SITE_BASE: ${{ vars.SITE_BASE }}
+```
+
+**做法 B：直接写死在配置里**
+
+把 `astro.config.mjs` 里的 `const { url, base } = detectSite();` 改成：
+
+```js
+const { url, base } = { url: 'https://你的域名/', base: '/' };
+```
+
+改完 push，网站就会用新域名生成所有链接。
 
 ---
 
 ## 日常写作流程
 
 ```powershell
-npm.cmd run new -- blog "标题"   # 1. 新建草稿
-# 2. 用编辑器写内容，写完把 draft 改成 false
-npm.cmd run dev                  # 3. 本地看一眼
-git add .
-git commit -m "新增：标题"
-git push                         # 4. 上线，1 分钟后自动发布
+npm.cmd run new -- blog "标题"    # 1. 新建草稿
+# 2. 写内容，把 draft 改成 false
+npm.cmd run publish               # 3. 若笔记在 Obsidian 知识库里，先同步
+npm.cmd run dev                   # 4. 本地确认
+git add . ; git commit -m "新增：标题" ; git push   # 5. 上线
 ```
-
----
-
-## 绑定自己的域名（可选，约 ¥30～60/年）
-
-1. 在域名商（阿里云、腾讯云、Namecheap 等）买一个域名；
-2. 到仓库 **Settings → Pages → Custom domain** 填域名，保存；
-3. 在你域名的 DNS 处添加记录：
-   - 类型 `CNAME`，主机记录 `www`（或 `@`），记录值 `YOURNAME.github.io`
-4. 回到 **Pages** 页面勾选 **Enforce HTTPS**（证书自动签发，可能要等几分钟）；
-5. 把 `src/consts.ts` 改成：
-   ```ts
-   url: 'https://你的域名/',
-   base: '/',
-   ```
-   同时更新 `public/robots.txt` 里的 Sitemap 地址，然后 push。
 
 ---
 
 ## 常见问题排查
 
-### 构建报 `require is not defined`
+### 该填的网址在哪？
 
-这是 Astro 7 + Vite 8 的一个已知坑：官方 `astro/loaders` 的 `glob()` 依赖 `picomatch`
-（CommonJS 包），会被内联进 ESM 模块运行器而崩溃。
+**不用填。** `astro.config.mjs` 通过 `src/lib/site-url.mjs` 自动判断：
 
-**本项目已经绕开了它**：内容集合用的是自带的 `src/loaders/markdown-dir.ts`
-（只用 `node:fs` + `js-yaml`，不碰 `picomatch`）。
+1. 有环境变量 `SITE_URL` → 用它（绑域名后用这个）
+2. 在 GitHub Actions 里 → 用仓库信息自动算出 `https://用户名.github.io/仓库名/`
+3. 本地开发 → 用 localhost（不影响预览）
 
-所以：**不要把 `content.config.ts` 里的 `markdownDir()` 改回官方的 `glob()`**，
-否则内容集合会整体不可用。等上游修复后再考虑切换。
+### 浏览器显示"拒绝连接"
 
-### 构建报配置或类型错误，且提示 "This error is often caused by a syntax error"
-
-检查文件是不是存成了**带 BOM 的 UTF-8**。BOM 会让 Vite 误判配置文件。
-`.editorconfig` 已声明 `charset = utf-8`，VS Code 右下角编码选 **UTF-8**（不要选 "UTF-8 with BOM"）。
-
-快速自查（在 `site` 目录执行）：
+服务没在运行。这个网站是静态的，必须开着服务才能访问：
 
 ```powershell
-Get-ChildItem src -Recurse -Include *.ts,*.astro | ForEach-Object {
-  $b = [System.IO.File]::ReadAllBytes($_.FullName)
-  if ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { "BOM: $($_.Name)" }
-}
+npm.cmd run dev        # 开发模式，网址是 http://127.0.0.1:4321/
 ```
 
-有输出就把该文件另存为「UTF-8 无 BOM」。
+### 构建报 `require is not defined`
 
-### 页面能打开但没有样式
+Astro 7 + Vite 8 的已知坑：官方 `astro/loaders` 的 `glob()` 依赖 `picomatch`（CommonJS），
+会被内联进 ESM 模块运行器而崩溃。
 
-`base` 和仓库名不一致。用浏览器 F12 看 Network，若 CSS/JS 是 404，就回来核对
-`src/consts.ts` 的 `base` 与仓库名。
+**本项目已经绕开了**：内容集合用的是自带的 `src/loaders/markdown-dir.ts`。
+**不要把 `content.config.ts` 里的 `markdownDir()` 改回官方 `glob()`。**
 
 ### 源文件删了，页面还在生成（幽灵页面）
 
 九成是 `src/` 下留了 `content.config.ts.bak` 之类的**备份文件**。
 Astro 会把同目录下多个 `content.config.*` 一起加载并**合并集合**，
-于是旧配置里的条目继续生成页面，而且日志里毫无提示，非常难排查。
+旧配置里的条目继续生成页面，日志里毫无提示，极难排查。
 
 ```powershell
 npm.cmd run preflight    # 会直接指出是哪几个文件
 ```
 
-需要备份配置就放到项目目录外面，不要放在 `src/` 下。
+### 构建报语法错误 / 提示 "This error is often caused by a syntax error"
 
-### 修改了内容但网站没变化
+检查文件是否存成了**带 BOM 的 UTF-8**。`npm.cmd run preflight` 会列出所有带 BOM 的文件。
+VS Code 右下角编码选 **UTF-8**（不要选 "UTF-8 with BOM"）。
 
-先本地构建一次确认：
+### 页面能打开但没有样式
 
-```powershell
-npm.cmd run build
-```
-
-如果本地是对的，线上没变，检查是不是忘了 `git push`，或去仓库 **Actions** 看是否有失败的运行。
+`base` 判断错了，通常是没有正确识别仓库名。检查仓库名是否为 `my-blog`，
+或临时用环境变量 `SITE_BASE=/my-blog/` 强制指定。
 
 ### Actions 里构建失败，报 `npm ci` 相关错误
 
-`package-lock.json` 没提交。执行 `git add package-lock.json && git commit -m "补 lock 文件" && git push`。
+`package-lock.json` 没提交。执行：
 
-### 想给文章配图
+```powershell
+git add package-lock.json ; git commit -m "补 lock 文件" ; git push
+```
 
-把图片放到 `public/images/`，在 Markdown 里写：
+### 附件图片
+
+图片放到 `public/images/`，Markdown 里写：
 
 ```markdown
 ![说明](/my-blog/images/图片名.png)
 ```
 
-注意路径要包含 `base`（即 `/my-blog/`）。
+注意路径要包含仓库名（即 `base`）。
