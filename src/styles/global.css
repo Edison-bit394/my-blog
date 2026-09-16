@@ -274,12 +274,18 @@ main {
   color: var(--text-soft);
 }
 
-/* ===== 首页照片 ===== */
-.hero-photo {
+/* ===== 首页照片对比 ===== */
+.compare {
+  display: grid;
+  gap: 1.75rem;
   margin: 2rem 0 0;
 }
 
-.hero-photo img {
+.compare-item {
+  margin: 0;
+}
+
+.compare-item img {
   display: block;
   width: 100%;
   height: auto;
@@ -288,6 +294,13 @@ main {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 10px 28px rgb(0 0 0 / 7%);
+}
+
+.compare-item figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
 }
 
 /* ===== 卡片网格（产品、导航） ===== */

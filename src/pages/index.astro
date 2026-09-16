@@ -6,6 +6,7 @@ import PostCard from '../components/PostCard.astro';
 import { SITE } from '../consts';
 import { url, postUrl, byDateDesc } from '../lib/utils';
 import oldPhotos from '../assets/old-photos.jpg';
+import recentPhotos from '../assets/recent-photos.jpg';
 
 const isProd = import.meta.env.PROD;
 const visible = <T extends { data: { draft: boolean } }>(list: T[]) =>
@@ -61,15 +62,28 @@ const sections = [
       <a class="tag" href={url('/products/')}>产品 {products.length} 个</a>
     </div>
 
-    <figure class="hero-photo">
-      <Image
-        src={oldPhotos}
-        alt="一张旧照片：三个人并排站着，背景是画着小鹿和花的白墙"
-        widths={[420, 840, 1355]}
-        sizes="(max-width: 46rem) 92vw, 42rem"
-        loading="eager"
-      />
-    </figure>
+    <div class="compare">
+      <figure class="compare-item">
+        <Image
+          src={oldPhotos}
+          alt="三十年前的旧照片：三个人并排站着，背景是画着小鹿和花的白墙"
+          widths={[420, 840, 1355]}
+          sizes="(max-width: 46rem) 92vw, 42rem"
+          loading="eager"
+        />
+        <figcaption>三十年前</figcaption>
+      </figure>
+
+      <figure class="compare-item">
+        <Image
+          src={recentPhotos}
+          alt="现在的合影：八个人，前排坐着三位长辈，后排站着大人和孩子，两侧是花艺布置"
+          widths={[480, 960, 1600]}
+          sizes="(max-width: 46rem) 92vw, 42rem"
+        />
+        <figcaption>现在</figcaption>
+      </figure>
+    </div>
   </section>
 
   <section>
